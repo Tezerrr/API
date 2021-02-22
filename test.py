@@ -12,6 +12,8 @@ all_sprites = pg.sprite.Group()
 coords = list(map(float, input().split(',')))
 z = int(input())
 count_map = 0
+count_metka = 1
+spisok_metok = []
 type_maps = ['map', 'sat', 'sat,skl']
 
 
@@ -32,12 +34,24 @@ def load_image(name, colorkey=None):
     return image
 
 
-def main():
-    w = requests.get(f"https://static-maps.yandex.ru/1.x/?"
-                     f"ll={','.join(list(map(str, coords)))}&z={z}&l={type_maps[count_map % 3]}")
+def main(metka=False):
+    global spisok_metok, count_metka
+    params = {
+        'll': ','.join(list(map(str, coords))),
+        'z': z,
+        'l': type_maps[count_map % 3],
+    }
+
+    if metka:
+        params['pt'] = f'{",".join(list(map(str, coords)))},pmwtm{count_metka}'
+        count_metka += 1
+        spisok_metok.append(coords)
+
+    w = requests.get(f"https://static-maps.yandex.ru/1.x/?", params)
     pg.display.set_caption('Маша_Редиска№1_Льоньа')
     Image.open(BytesIO(w.content)).save('image.png')
     return pg.image.load('image.png')
+
 
 def qt_start_search():
     app = QApplication(sys.argv)
@@ -45,11 +59,37 @@ def qt_start_search():
     ex.show()
     app.exec()
 
+
 class MySearch(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
         self.setWindowTitle('Поиск')
+        self.params = {
+            'apikey': '40d1649f-0493-4b70-98ba-98533de7710b',
+            'geocode': None,
+            'format': 'json'
+        }
+        self.zapros = "http://geocode-maps.yandex.ru/1.x/?"
+        self.pushButton.clicked.connect(self.run)
+
+    def run(self):
+        global coords
+        self.params['geocode'] = self.lineEdit.text()
+        try:
+            response = requests.get(self.zapros, params=self.params)
+            json_response = response.json()
+            cord = json_response["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]["Point"]["pos"]
+            coords = list(map(float, cord.split()))
+            self.statusbar.showMessage('Успешно!!!')
+            self.statusbar.setStyleSheet('background-color: lightgreen')
+        except Exception:
+            self.statusbar.showMessage('Такого места не существует')
+            self.statusbar.setStyleSheet('background-color: pink')
+
+    def closeEvent(self, e):
+        global w
+        w = main(True)
 
 
 class Search(pg.sprite.Sprite):
