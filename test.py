@@ -41,12 +41,17 @@ def main(metka=False):
         'z': z,
         'l': type_maps[count_map % 3],
     }
+    metki = []
+    for i in enumerate(spisok_metok):
+        metki.append(f'{",".join(list(map(str, i[1])))},pm2vvm{i[0] + 1}')
 
-    if metka:
-        params['pt'] = f'{",".join(list(map(str, coords)))},pmwtm{count_metka}'
+    if metka and coords not in spisok_metok:
+        metki.append(f'{",".join(list(map(str, coords)))},pm2vvm{count_metka}')
         count_metka += 1
         spisok_metok.append(coords)
 
+    metki = '~'.join(metki)
+    params['pt'] = metki
     w = requests.get(f"https://static-maps.yandex.ru/1.x/?", params)
     pg.display.set_caption('Маша_Редиска№1_Льоньа')
     Image.open(BytesIO(w.content)).save('image.png')
