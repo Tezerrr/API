@@ -122,10 +122,10 @@ while True:
                 os.remove("image.png")
             sys.exit()
         if i.type == pg.KEYDOWN:
-            if i.key == pg.K_w and z > 0:
+            if i.key == pg.K_PAGEUP and z > 0:
                 z -= 1
                 w = main()
-            if i.key == pg.K_e and z < 23:
+            if i.key == pg.K_PAGEDOWN and z < 23:
                 z += 1
                 w = main()
             if i.key == pg.K_LEFT and coords[0] > -180:
